@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: ai-news-bot
+    runtime: python
+    plan: free
+    buildCommand: uv sync
+    startCommand: uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: TIMEZONE
+        value: Asia/Kolkata
+

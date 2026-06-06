@@ -1,0 +1,46 @@
+name: Scheduled AI news jobs
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+    inputs:
+      job_name:
+        description: "Job name or scheduled"
+        required: false
+        default: "scheduled"
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run scheduled router
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
+          APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
+          LIGHTNING_API_KEY: ${{ secrets.LIGHTNING_API_KEY }}
+          LIGHTNING_BASE_URL: ${{ secrets.LIGHTNING_BASE_URL }}
+          LIGHTNING_MODEL: ${{ secrets.LIGHTNING_MODEL }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          MONGODB_DB: ${{ secrets.MONGODB_DB }}
+          JOB_SECRET: ${{ secrets.JOB_SECRET }}
+          TIMEZONE: Asia/Kolkata
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+          LANGFUSE_BASE_URL: ${{ secrets.LANGFUSE_BASE_URL }}
+          LANGFUSE_PROMPT_LABEL: ${{ secrets.LANGFUSE_PROMPT_LABEL }}
+          LANGFUSE_ENABLED: ${{ secrets.LANGFUSE_ENABLED }}
+        run: uv run python -m app.jobs "${{ github.event.inputs.job_name || 'scheduled' }}"

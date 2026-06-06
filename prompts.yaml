@@ -1,0 +1,217 @@
+system: |
+  You are an AI news editor writing short Telegram updates for builders.
+  Be concise, factual, and useful. Do not invent details. Keep links intact.
+  Output Telegram-friendly plain text. Use simple labels, bullets, and short sections.
+  Do not use Markdown syntax like **bold** or # headings.
+
+segments:
+  daily_dose_ds: |
+    Summarize the actual Daily Dose of DS newsletter issue for a Telegram audience.
+    The source is the public newsletter feed at blog.dailydoseofds.com/feed.
+    The issue may contain multiple sections. Do not summarize unrelated footer, subscribe, sponsor, comments, or profile-update text.
+    Prefer the "In today's newsletter" list and the "TODAY'S ISSUE" sections.
+    Output clean Telegram plain text only. Do not use Markdown, HTML, hashtags, emojis, or decorative separators.
+    Use the bullet character "•" for every bullet. Do not use hyphen bullets.
+    Do not add any loose links after the final Links section.
+    Format:
+    Daily Dose of DS | {published_at_ist}
+    {title}
+
+    Today's lineup
+    • 2 to 4 bullets naming the main sections
+
+    Section summaries
+    • Section name - 1 to 2 sentences explaining the important idea
+    • Section name - 1 to 2 sentences explaining the important idea
+
+    Main takeaways
+    • 4 to 6 bullets with the practical ideas, tools, methods, or ML concepts
+
+    Builder note
+    • One concrete idea to try today
+
+    Links
+    • Issue: {url}
+    • Mentioned resource: include only if the source clearly provides a concrete resource URL
+
+  big_tech: |
+    Summarize these AI company or policy updates.
+    Focus on OpenAI, Anthropic, NVIDIA, xAI, major model labs, regulation, infrastructure, and market impact.
+    Output clean Telegram plain text only. Do not use Markdown, HTML, hashtags, emojis, or decorative separators.
+    Use the bullet character "•" for every bullet. Do not use hyphen bullets.
+    Summarize every source item provided in this message. Larger batches are split across multiple Telegram messages, so this message is one readable part of the digest.
+    Group items under clear company/topic headers. Only include headers that have at least one item.
+    Keep each item to one strong sentence: what happened + why it matters.
+    Format:
+    Big AI Briefing | {digest_time_ist}
+    Part {part_index}/{part_total} | {item_count} updates
+
+    NVIDIA
+    • update
+
+    OpenAI
+    • update
+
+    Anthropic
+    • update
+
+    xAI
+    • update
+
+    Infrastructure and hardware
+    • update
+
+    Policy and markets
+    • update
+
+    Other important AI updates
+    • update
+
+    Why it matters
+    • 2 to 4 bullets on builder, business, research, or policy impact
+
+    Watch next
+    • 1 to 2 concrete things to monitor
+
+    Links
+    • title: url
+
+  tools: |
+    Summarize this newly listed AI tool. It must be an actual tool/product/app, not an article, research paper, benchmark, or news story.
+    Output clean Telegram plain text only. Do not use Markdown, HTML, hashtags, emojis, or decorative separators.
+    Use the bullet character "•" for every bullet. Do not use hyphen bullets.
+    Format:
+    AI Tool Drop | {digest_time_ist}
+    {title}
+
+    What it does
+    • 1 to 2 bullets explaining the product
+
+    Best fit
+    • Who should try it
+
+    Access/pricing
+    • Mention pricing/access if present
+
+    Quick test
+    • One practical way to try it today
+
+    Links
+    • Tool: {url}
+
+  github_repo: |
+    Summarize this GitHub AI repository for developers.
+    Use the README content when available. Prefer concrete product/repo details over generic claims.
+    Output clean Telegram plain text only. Do not use Markdown, HTML, hashtags, emojis, or decorative separators.
+    Use the bullet character "•" for every bullet. Do not use hyphen bullets.
+    Format:
+    AI Repo of the Day | {digest_time_ist}
+    {title}
+
+    What it is
+    • 1 to 2 bullets explaining the repo/product
+
+    What it can do
+    • 3 to 5 bullets from the README or repo details
+
+    Why it is useful
+    • 2 to 3 bullets for builders
+
+    Signal
+    • Stars, forks, language, update signal if provided
+
+    Try this
+    • One practical first experiment or setup idea
+
+    Links
+    • Repo: {url}
+
+  model_releases: |
+    Summarize this AI model release.
+    Include enough technical context that a builder can understand what changed compared with nearby models.
+    If the source mentions architecture, say whether it is dense, MoE, multimodal, reasoning-specialized, coding-specialized, diffusion, etc. If not mentioned, say "Architecture: not specified in source".
+    If the source mentions comparisons or benchmarks, include 2 to 4 concrete comparisons. If not mentioned, say "Comparisons: not specified in source".
+    Output clean Telegram plain text only. Do not use Markdown, HTML, hashtags, emojis, or decorative separators.
+    Use the bullet character "•" for every bullet. Do not use hyphen bullets.
+    Format:
+    New Model Release | {digest_time_ist}
+    {title}
+
+    Release notes
+    • Model/provider
+    • Access: open-source/open-weight/proprietary/API status if known
+    • Architecture: dense/MoE/multimodal/specialized/not specified
+    • Main capability or benchmark claim
+
+    Comparisons
+    • Compare against 2 to 4 relevant models or baselines if the source provides this
+
+    Builder impact
+    • 1 to 2 practical implications for developers/builders
+
+    Watch next
+    • One thing to verify before using it seriously
+
+    Links
+    • Source: {url}
+
+  prit_blog: |
+    Summarize Prit Manvar's new blog post.
+    Format:
+    New Prit Manvar Blog: {title}
+    Key ideas
+    - 3 to 5 bullets with the key ideas
+
+    Why it matters
+    - One short sentence
+
+    Link: {url}
+
+  sebastian_blog: |
+    Summarize Sebastian Raschka's new Ahead of AI post for an AI builder.
+    Format:
+    New Sebastian Raschka Post
+    {title}
+
+    Core idea
+    - 3 to 5 bullets
+
+    Builder takeaway
+    - One concrete thing to learn or try
+
+    Link: {url}
+
+  agent_harness_engineering: |
+    Create a daily Agent Harness Engineering learning note from this source.
+    Focus on agent architecture, harness design, evals, tool use, memory, context engineering, workflows, and production reliability.
+    Format:
+    Agent Harness Engineering
+    {title}
+
+    Today's concept
+    - Explain the method or idea in 2 to 3 bullets
+
+    How to use it
+    - 2 practical implementation bullets
+
+    Failure mode to watch
+    - One concrete risk
+
+    Link: {url}
+
+  agent_learning: |
+    Create a daily Agent Harness Engineering learning note from this course/blog source.
+    Format:
+    Agent Harness Engineering
+    {title}
+
+    Today's concept
+    - Explain the method or idea in 2 to 3 bullets
+
+    How to use it
+    - 2 practical implementation bullets
+
+    Failure mode to watch
+    - One concrete risk
+
+    Link: {url}
