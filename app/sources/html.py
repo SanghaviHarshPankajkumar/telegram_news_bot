@@ -1,3 +1,5 @@
+import re
+
 from bs4 import BeautifulSoup
 import httpx
 
@@ -43,6 +45,10 @@ def fetch_html(client: httpx.Client, source: SourceConfig, segment: str) -> list
         summary = _extract_text(element, summary_selector) if summary_selector else ""
         published_text = _extract_text(element, published_selector) if published_selector else ""
         published_at = parse_datetime(published_text)
+        if not published_at:
+            date_match = re.search(r"\b(\d{1,2}\s+[A-Z][a-z]{2,8}\s+\d{4})\b", title)
+            if date_match:
+                published_at = parse_datetime(date_match.group(1))
         if not title or not url or url in seen_urls:
             continue
         if title.lower() in {"home", "blog", "about", "subscribe", "tools", "ai news"}:
@@ -60,4 +66,3 @@ def fetch_html(client: httpx.Client, source: SourceConfig, segment: str) -> list
         item.canonical_id = build_canonical_id(source.id, item.title, item.url, item.published_at)
         items.append(item)
     return items
-

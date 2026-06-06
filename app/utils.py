@@ -54,10 +54,17 @@ def parse_datetime(value: object) -> datetime | None:
         try:
             dt = datetime.fromisoformat(text.replace("Z", "+00:00"))
         except ValueError:
-            try:
-                dt = parsedate_to_datetime(text)
-            except (TypeError, ValueError):
-                return None
+            for date_format in ("%d %b %Y", "%d %B %Y"):
+                try:
+                    dt = datetime.strptime(text, date_format)
+                    break
+                except ValueError:
+                    dt = None
+            if dt is None:
+                try:
+                    dt = parsedate_to_datetime(text)
+                except (TypeError, ValueError):
+                    return None
     else:
         return None
     if dt.tzinfo is None:
@@ -82,4 +89,3 @@ def get_path(data: object, path: str | None) -> object:
         else:
             return None
     return current
-

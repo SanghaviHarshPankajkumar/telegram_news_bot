@@ -19,7 +19,11 @@ def test_parse_datetime_iso_z():
     assert parsed == datetime(2026, 6, 6, 12, 0, tzinfo=timezone.utc)
 
 
+def test_parse_datetime_short_date():
+    parsed = parse_datetime("20 Feb 2026")
+    assert parsed == datetime(2026, 2, 20, tzinfo=timezone.utc)
+
+
 def test_get_path_reads_nested_dict_and_list():
     data = {"items": [{"title": "Hello"}]}
     assert get_path(data, "items.0.title") == "Hello"
-

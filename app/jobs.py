@@ -43,6 +43,7 @@ SCHEDULED_JOBS = {
 }
 
 EVERY_POLL_JOBS = ["model_releases", "prit_blog", "sebastian_blog"]
+FRESH_ONLY_JOBS = set(EVERY_POLL_JOBS)
 BIG_TECH_ITEMS_PER_MESSAGE = 10
 
 JOB_SOURCE_SEGMENTS = {
@@ -69,6 +70,20 @@ def chunk_items(items: list[NewsItem], chunk_size: int) -> list[list[NewsItem]]:
     return [items[index : index + chunk_size] for index in range(0, len(items), chunk_size)]
 
 
+def fresh_cutoff_for_today(timezone_name: str, now: datetime | None = None) -> datetime:
+    local_now = (now or datetime.now(tz=ZoneInfo("UTC"))).astimezone(ZoneInfo(timezone_name))
+    local_midnight = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
+    return local_midnight.astimezone(ZoneInfo("UTC"))
+
+
+def is_fresh_for_impromptu(segment: str, item: NewsItem, settings_timezone: str, now: datetime | None = None) -> bool:
+    if segment not in FRESH_ONLY_JOBS:
+        return True
+    if not item.published_at:
+        return False
+    return item.published_at >= fresh_cutoff_for_today(settings_timezone, now)
+
+
 def collect_new_items(
     segment: str,
     store: MongoStore | None,
@@ -91,6 +106,8 @@ def collect_new_items(
                 if not matches_filters(item, source):
                     continue
                 if not matches_segment_defaults(item, segment):
+                    continue
+                if not is_fresh_for_impromptu(segment, item, settings.timezone):
                     continue
                 if dry_run:
                     collected.append(item)
