@@ -1,7 +1,8 @@
 from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -26,6 +27,13 @@ class Settings(BaseSettings):
     prompts_path: Path = Field(default=Path("prompts.yaml"))
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+
+    @field_validator("langfuse_enabled", mode="before")
+    @classmethod
+    def empty_langfuse_enabled_uses_default(cls, value: Any) -> Any:
+        if value == "":
+            return True
+        return value
 
 
 @lru_cache
