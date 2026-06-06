@@ -9,6 +9,7 @@ on:
         description: "Job name or scheduled"
         required: false
         default: "scheduled"
+        type: string
 
 jobs:
   run:
@@ -43,4 +44,5 @@ jobs:
           LANGFUSE_BASE_URL: ${{ secrets.LANGFUSE_BASE_URL }}
           LANGFUSE_PROMPT_LABEL: ${{ secrets.LANGFUSE_PROMPT_LABEL }}
           LANGFUSE_ENABLED: ${{ secrets.LANGFUSE_ENABLED }}
-        run: uv run python -m app.jobs "${{ github.event.inputs.job_name || 'scheduled' }}"
+          JOB_NAME: ${{ inputs.job_name || 'scheduled' }}
+        run: uv run python -m app.jobs "$JOB_NAME"
