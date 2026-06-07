@@ -85,6 +85,15 @@ def is_fresh_for_impromptu(segment: str, item: NewsItem, settings_timezone: str,
     return item.published_at >= fresh_cutoff_for_today(settings_timezone, now)
 
 
+def handle_undated_item(source_id: str, segment: str, item: NewsItem, store: MongoStore | None, dry_run: bool) -> bool:
+    if dry_run or store is None:
+        return False
+    if not store.is_source_initialized(source_id, segment):
+        store.mark_item_seen_without_sending(item, "baseline_undated_source")
+        return False
+    return store.insert_item_if_new(item)
+
+
 def collect_new_items(
     segment: str,
     store: MongoStore | None,
@@ -103,10 +112,21 @@ def collect_new_items(
                 print(f"source_failed source={source.id} error={exc}")
                 continue
             items = sorted(items, key=lambda item: segment_score(item, segment), reverse=True)
+            source_initialized = True
+            saw_undated_item = False
+            if store and not dry_run:
+                source_initialized = store.is_source_initialized(source.id, segment)
             for item in items:
                 if not matches_filters(item, source):
                     continue
                 if not matches_segment_defaults(item, segment):
+                    continue
+                if segment in FRESH_ONLY_JOBS and not item.published_at:
+                    saw_undated_item = True
+                    if handle_undated_item(source.id, segment, item, store, dry_run):
+                        collected.append(item)
+                    if len(collected) >= max_items:
+                        return collected
                     continue
                 if not is_fresh_for_impromptu(segment, item, settings.timezone):
                     continue
@@ -116,6 +136,8 @@ def collect_new_items(
                     collected.append(item)
                 if len(collected) >= max_items:
                     return collected
+            if saw_undated_item and store and not dry_run and not source_initialized:
+                store.mark_source_initialized(source.id, segment)
     return collected
 
 

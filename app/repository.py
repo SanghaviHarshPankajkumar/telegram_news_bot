@@ -28,12 +28,17 @@ class MongoStore:
     def job_runs(self) -> Collection:
         return self.db["job_runs"]
 
+    @property
+    def source_states(self) -> Collection:
+        return self.db["source_states"]
+
     def ensure_indexes(self) -> None:
         self.users.create_index([("chat_id", ASCENDING)], unique=True)
         self.users.create_index([("active", ASCENDING)])
         self.items.create_index([("canonical_id", ASCENDING)], unique=True)
         self.items.create_index([("segment", ASCENDING), ("sent_at", ASCENDING)])
         self.job_runs.create_index([("job_name", ASCENDING), ("started_at", ASCENDING)])
+        self.source_states.create_index([("source_id", ASCENDING), ("segment", ASCENDING)], unique=True)
 
     def upsert_user(self, telegram_user: dict[str, Any], chat: dict[str, Any]) -> None:
         now = datetime.now(timezone.utc)
@@ -80,6 +85,17 @@ class MongoStore:
             existing = self.items.find_one({"canonical_id": item.canonical_id}, {"sent_at": 1})
             return bool(existing and existing.get("sent_at") is None)
 
+    def mark_item_seen_without_sending(self, item: NewsItem, reason: str) -> None:
+        document = item.model_dump()
+        now = datetime.now(timezone.utc)
+        document["sent_at"] = now
+        document["skipped_at"] = now
+        document["skipped_reason"] = reason
+        try:
+            self.items.insert_one(document)
+        except DuplicateKeyError:
+            return
+
     def mark_item_sent(self, canonical_id: str) -> None:
         self.items.update_one(
             {"canonical_id": canonical_id},
@@ -96,6 +112,20 @@ class MongoStore:
                 },
                 {"_id": 1},
             )
+        )
+
+    def is_source_initialized(self, source_id: str, segment: str) -> bool:
+        return bool(self.source_states.find_one({"source_id": source_id, "segment": segment}, {"_id": 1}))
+
+    def mark_source_initialized(self, source_id: str, segment: str) -> None:
+        now = datetime.now(timezone.utc)
+        self.source_states.update_one(
+            {"source_id": source_id, "segment": segment},
+            {
+                "$set": {"updated_at": now},
+                "$setOnInsert": {"initialized_at": now},
+            },
+            upsert=True,
         )
 
     def log_job_run(
