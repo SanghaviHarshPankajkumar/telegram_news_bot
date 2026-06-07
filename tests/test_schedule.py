@@ -44,17 +44,17 @@ def test_due_jobs_at_big_tech_evening_time(monkeypatch):
 
 def test_due_jobs_catches_up_late_scheduled_run(monkeypatch):
     monkeypatch.setenv("TIMEZONE", "Asia/Kolkata")
-    jobs = due_jobs(datetime(2026, 6, 6, 4, 12, tzinfo=ZoneInfo("UTC")), NeverRunStore())
+    jobs = due_jobs(datetime(2026, 6, 6, 3, 42, tzinfo=ZoneInfo("UTC")), NeverRunStore())
     assert "daily_dose_ds" in jobs
 
 
 def test_due_jobs_does_not_repeat_completed_slot(monkeypatch):
     monkeypatch.setenv("TIMEZONE", "Asia/Kolkata")
-    jobs = due_jobs(datetime(2026, 6, 6, 4, 12, tzinfo=ZoneInfo("UTC")), AlreadyRunStore())
+    jobs = due_jobs(datetime(2026, 6, 6, 3, 42, tzinfo=ZoneInfo("UTC")), AlreadyRunStore())
     assert "daily_dose_ds" not in jobs
 
 
 def test_due_jobs_does_not_catch_up_after_window(monkeypatch):
     monkeypatch.setenv("TIMEZONE", "Asia/Kolkata")
-    jobs = due_jobs(datetime(2026, 6, 6, 7, 1, tzinfo=ZoneInfo("UTC")), NeverRunStore())
+    jobs = due_jobs(datetime(2026, 6, 6, 3, 51, tzinfo=ZoneInfo("UTC")), NeverRunStore())
     assert "daily_dose_ds" not in jobs

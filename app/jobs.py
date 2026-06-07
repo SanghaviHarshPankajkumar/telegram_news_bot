@@ -43,9 +43,9 @@ SCHEDULED_JOBS = {
 }
 
 EVERY_POLL_JOBS = ["model_releases", "prit_blog", "sebastian_blog"]
-FRESH_ONLY_JOBS = set(EVERY_POLL_JOBS)
+FRESH_ONLY_JOBS = set(JOB_LIMITS)
 BIG_TECH_ITEMS_PER_MESSAGE = 10
-SCHEDULE_CATCHUP_MINUTES = 180
+SCHEDULE_CATCHUP_MINUTES = 20
 
 JOB_SOURCE_SEGMENTS = {
     "big_tech_noon": "big_tech",
