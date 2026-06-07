@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, Request
 
 from app.config import get_settings
+from app.jobs import run_scheduled
 from app.langfuse_prompts import configure_langfuse
 from app.repository import MongoStore
 from app.telegram import TelegramClient, WELCOME_MESSAGE
@@ -20,6 +21,24 @@ def startup() -> None:
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+def run_scheduled_from_http(secret: str) -> dict[str, int | bool]:
+    settings = get_settings()
+    if secret != settings.job_secret:
+        raise HTTPException(status_code=404, detail="Not found")
+    exit_code = run_scheduled(dry_run=False)
+    return {"ok": exit_code == 0, "exit_code": exit_code}
+
+
+@app.get("/jobs/run-scheduled")
+def run_scheduled_job_get(secret: str) -> dict[str, int | bool]:
+    return run_scheduled_from_http(secret)
+
+
+@app.post("/jobs/run-scheduled")
+def run_scheduled_job_post(secret: str) -> dict[str, int | bool]:
+    return run_scheduled_from_http(secret)
 
 
 @app.post("/telegram/webhook/{secret}")

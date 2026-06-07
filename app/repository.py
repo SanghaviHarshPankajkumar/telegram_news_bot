@@ -86,6 +86,18 @@ class MongoStore:
             {"$set": {"sent_at": datetime.now(timezone.utc)}},
         )
 
+    def has_successful_job_run_since(self, job_name: str, since: datetime) -> bool:
+        return bool(
+            self.job_runs.find_one(
+                {
+                    "job_name": job_name,
+                    "status": "ok",
+                    "started_at": {"$gte": since},
+                },
+                {"_id": 1},
+            )
+        )
+
     def log_job_run(
         self,
         job_name: str,

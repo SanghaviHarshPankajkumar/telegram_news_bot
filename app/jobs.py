@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 import math
-from datetime import datetime
+from datetime import datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
 import httpx
@@ -45,6 +45,7 @@ SCHEDULED_JOBS = {
 EVERY_POLL_JOBS = ["model_releases", "prit_blog", "sebastian_blog"]
 FRESH_ONLY_JOBS = set(EVERY_POLL_JOBS)
 BIG_TECH_ITEMS_PER_MESSAGE = 10
+SCHEDULE_CATCHUP_MINUTES = 180
 
 JOB_SOURCE_SEGMENTS = {
     "big_tech_noon": "big_tech",
@@ -198,16 +199,36 @@ def run_job(job_name: str, dry_run: bool = False, limit: int | None = None) -> i
         raise
 
 
-def due_jobs(now: datetime) -> list[str]:
-    local = now.astimezone(ZoneInfo(get_settings().timezone))
+def due_jobs(now: datetime, store: MongoStore | None = None) -> list[str]:
+    timezone = ZoneInfo(get_settings().timezone)
+    local = now.astimezone(timezone)
     key = local.strftime("%H:%M")
     jobs = list(EVERY_POLL_JOBS)
-    jobs.extend(SCHEDULED_JOBS.get(key, []))
+
+    if store is None:
+        jobs.extend(SCHEDULED_JOBS.get(key, []))
+        return jobs
+
+    for scheduled_time, scheduled_jobs in SCHEDULED_JOBS.items():
+        scheduled_clock = time.fromisoformat(scheduled_time)
+        scheduled_local = datetime.combine(local.date(), scheduled_clock, tzinfo=timezone)
+        if local < scheduled_local:
+            continue
+        if local - scheduled_local > timedelta(minutes=SCHEDULE_CATCHUP_MINUTES):
+            continue
+        scheduled_utc = scheduled_local.astimezone(ZoneInfo("UTC"))
+        for job in scheduled_jobs:
+            if not store.has_successful_job_run_since(job, scheduled_utc):
+                jobs.append(job)
     return jobs
 
 
 def run_scheduled(dry_run: bool = False) -> int:
-    jobs = due_jobs(datetime.now(tz=ZoneInfo("UTC")))
+    settings = get_settings()
+    store = None if dry_run else MongoStore(settings.mongodb_uri, settings.mongodb_db)
+    if store:
+        store.ensure_indexes()
+    jobs = due_jobs(datetime.now(tz=ZoneInfo("UTC")), store)
     print(f"scheduled jobs: {', '.join(jobs)}")
     exit_code = 0
     for job in jobs:
